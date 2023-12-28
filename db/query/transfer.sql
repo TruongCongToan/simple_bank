@@ -7,7 +7,7 @@ INSERT INTO tranfers (
 	$1, $2, $3
 ) RETURNING *;
 
--- name: getTranfers :one
+-- name: GetTranfers :one
 SELECT * FROM tranfers WHERE id = $1 LIMIT 1;
 
 -- name: ListTranfers :many
