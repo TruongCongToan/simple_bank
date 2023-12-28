@@ -1,7 +1,7 @@
 # create up and down migrate file: migrate create -ext sql -dir db/migration -seq init_shema
 
 postgres:
-	docker run --name postgres16 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=12345678 -d postgres:16-alpine
+	docker run --name postgres16 -p 5432:5432 --network bank-network -e POSTGRES_USER=root -e POSTGRES_PASSWORD=12345678 -d postgres:16-alpine
 
 createdb:
 	docker exec -it postgres16 createdb --username=root --owner=root simple_bank
