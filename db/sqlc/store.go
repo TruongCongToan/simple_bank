@@ -6,22 +6,28 @@ import (
 	"fmt"
 )
 
+// make fake database to mock test
+type Store interface {
+	Querier
+	TranferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
 // Store provides all functions to execute database queries and transactions
-type Store struct {
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
 // create New Store
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
 // execTx executes a function within a database transaction
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 
 	if err != nil {
@@ -57,7 +63,7 @@ type TransferTxResult struct {
 // TranferTx performs a money transfer from 1 account to the other
 // It create a transfer record, add account entries and update account balance with a single db transaction
 
-func (store *Store) TranferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TranferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
@@ -96,7 +102,7 @@ func (store *Store) TranferTx(ctx context.Context, arg TransferTxParams) (Transf
 		// minus money in account 1
 
 		if arg.FromAccountId < arg.ToAccountId {
-			result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 				ID:     arg.FromAccountId,
 				Amount: -arg.Amount,
 			})
@@ -107,7 +113,7 @@ func (store *Store) TranferTx(ctx context.Context, arg TransferTxParams) (Transf
 
 			//plus money to account 2
 
-			result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 				ID:     arg.ToAccountId,
 				Amount: arg.Amount,
 			})
@@ -117,7 +123,7 @@ func (store *Store) TranferTx(ctx context.Context, arg TransferTxParams) (Transf
 			}
 		} else {
 			//plus money to account 2
-			result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 				ID:     arg.ToAccountId,
 				Amount: arg.Amount,
 			})
@@ -126,7 +132,7 @@ func (store *Store) TranferTx(ctx context.Context, arg TransferTxParams) (Transf
 				return err
 			}
 
-			result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 				ID:     arg.FromAccountId,
 				Amount: -arg.Amount,
 			})
