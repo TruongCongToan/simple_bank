@@ -43,6 +43,5 @@ jobs:
           REPOSITORY: simplebank
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          ls
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG . -f https://github.com/TruongCongToan/simple_bank/blob/master/Dockerfile
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
