@@ -26,6 +26,9 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Check out code
+      uses: actions/checkout@v3
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -43,5 +46,5 @@ jobs:
           REPOSITORY: simplebank
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG . -f https://github.com/TruongCongToan/simple_bank/blob/master/Dockerfile
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
